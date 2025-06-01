@@ -1,5 +1,6 @@
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_openai import ChatOpenAI
+from langchain_ollama.llms import OllamaLLM
 from langchain.tools import tool
 from langgraph.prebuilt import create_react_agent
 from langchain.prompts import PromptTemplate
@@ -15,10 +16,16 @@ class LLM_Model:
         self.model = None
         self.agent_handler = None
         self.memory = ChatMessageHistory()
+        self.model_classes = {
+            'openai': ChatOpenAI,
+            'ollama': OllamaLLM,
+        }
 
-    def load_model(self, temperature=0):
-        self.model = ChatOpenAI(temperature=temperature)
-
+    def load_model(self, model_type='openai', **kwargs):
+        if model_type in self.model_classes:
+            self.model = self.model_classes[model_type](**kwargs)
+        else:
+            raise ValueError(f"Unsupported model type: {model_type}")
     def load_agent(self):
         self.agent_handler = LLM_Agents(self.model)
         self.agent_handler.load_agent()
